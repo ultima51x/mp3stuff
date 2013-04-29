@@ -2,7 +2,7 @@
 
 import sys
 
-from id3stuff.analyzer import Analyzer
+from mp3stuff.analyzer import Analyzer
 
 analyzer = Analyzer()
 

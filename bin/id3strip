@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+import sys
+import os
+
+def is_mp3(filename):
+    filename, ext = os.path.splitext(filename)
+    if ext == ".mp3" or ext == ".MP3":
+        return True
+    else:
+        return False
+
+def list_of_mp3s(path):
+    l = []
+    for (path, dirs, files) in os.walk(path):
+        for f in files:
+            if is_mp3(f):
+                l.append(os.path.join(path,f))
+    return l
+
+def strip(path):
+    from subprocess import call
+    call(["python","-m","eyed3.main","--remove-all-images","--remove-v1","--remove-all-comments","--remove-all-lyrics","-G","",path])
+
+if len(sys.argv) < 2:
+    path = '.'
+else:
+    path = sys.argv[1]
+
+for mp3 in list_of_mp3s(path):
+    strip(mp3)
+

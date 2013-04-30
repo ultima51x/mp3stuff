@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+
+import os
+import termcolor
+import argparse
+
+from mp3stuff.mp3 import Mp3Collection
+
+parser = argparse.ArgumentParser(description='Compares my music folder with the iTunes collection.')
+parser.add_argument('--addtoitunes', help='adds music to iTunes', action="store_true")
+args = parser.parse_args()
+
+HOME = os.path.expanduser("~")
+ITUNES = "Music/iTunes/iTunes Music Library.xml"
+MUSIC = "Music/mp3"
+
+collection = Mp3Collection(os.path.join(HOME,ITUNES), os.path.join(HOME,MUSIC))
+
+print termcolor.colored("MP3 files not in iTunes...",'green')
+mfi = collection.missing_from_itunes()
+for f in mfi:
+    print f
+print termcolor.colored(str(len(mfi)) + " files found.",'green')
+
+print termcolor.colored("MP3 files missing or not in my collection...",'red')
+nimc = collection.not_in_my_collection()
+for f in nimc:
+    print f
+print termcolor.colored(str(len(nimc)) + " files found.",'red')
+
+if args.addtoitunes:
+    if len(mfi) > 0:
+        import subprocess
+        print termcolor.colored("Adding files to iTunes...",'blue')
+        for f in mfi:
+            print f
+            subprocess.call(["osascript","-e","tell application \"iTunes\" to add POSIX file \"%s\"" % (f)])
+        print termcolor.colored("Finished.",'blue')
+    else:
+        print termcolor.colored("No files to iTunes. Awesome.",'blue')

@@ -6,7 +6,7 @@ setup(
     author="David Hwang",
     author_email="d.hw4ng@gmail.com",
     packages=["mp3stuff"],
-    scripts=["bin/id3validate","bin/id3strip"],
+    scripts=["bin/id3validate","bin/id3strip","bin/diffmusic"],
     description="This does id3 stuff",
     install_requires=[
         "eyeD3 >= 0.7.1",

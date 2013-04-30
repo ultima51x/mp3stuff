@@ -6,15 +6,18 @@ import argparse
 
 from mp3stuff.mp3 import Mp3Collection
 
-parser = argparse.ArgumentParser(description='Compares my music folder with the iTunes collection.')
-parser.add_argument('--addtoitunes', help='adds music to iTunes', action="store_true")
-args = parser.parse_args()
-
 HOME = os.path.expanduser("~")
 ITUNES = "Music/iTunes/iTunes Music Library.xml"
 MUSIC = "Music/mp3"
 
-collection = Mp3Collection(os.path.join(HOME,ITUNES), os.path.join(HOME,MUSIC))
+parser = argparse.ArgumentParser(description='Compares my music folder with the iTunes collection.')
+parser.add_argument('--addtoitunes', help='adds music to iTunes', action="store_true")
+parser.add_argument('--itunesdir', help='xml file of iTunes collection', action="store_true", default=os.path.join(HOME,ITUNES))
+parser.add_argument('--musicdir', help='music directory', action="store_true", default=os.path.join(HOME,MUSIC))
+args = parser.parse_args()
+
+
+collection = Mp3Collection(args.musicdir, args.itunesdir)
 
 print termcolor.colored("MP3 files not in iTunes...",'green')
 mfi = collection.missing_from_itunes()

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-
+import os
 import sys
+import argparse
 
 from mp3stuff.analyzer import Analyzer
 
-analyzer = Analyzer()
+parser = argparse.ArgumentParser(description='Make sure my id3 tags are to my liking.')
+parser.add_argument('file', nargs='?', metavar="file", type=str, help='adds music to iTunes', default=os.getcwd())
+args = parser.parse_args()
 
-if len(sys.argv) < 2:
-    analyzer.analyze_recursively()
-else:
-    analyzer.analyze_recursively(sys.argv[1])
+Analyzer().analyze_recursively(args.file)

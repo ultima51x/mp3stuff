@@ -6,7 +6,7 @@ import argparse
 from mp3stuff.analyzer import Analyzer
 
 parser = argparse.ArgumentParser(description='Make sure my id3 tags are to my liking.')
-parser.add_argument('file', nargs='?', metavar="file", type=str, help='adds music to iTunes', default=os.getcwd())
+parser.add_argument('file', nargs='?', metavar="file", type=str, help='directory with music to analyze', default=os.getcwd())
 args = parser.parse_args()
 
 Analyzer().analyze_recursively(args.file)

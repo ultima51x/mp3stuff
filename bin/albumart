@@ -1,0 +1,136 @@
+#!/usr/bin/env python
+
+import os
+import argparse
+import urllib
+import json
+import urllib2
+import subprocess
+
+def search_term(artist, album):
+    term = ""
+    if artist is not None:
+        term += artist
+    if artist is not None and album is not None:
+        term += " "
+    if album is not None:
+        term += album
+    return term
+
+def get_albumartexchange_url(artist, album):
+    params = urllib.urlencode({'sort': 4, 'q': search_term(artist, album)})
+    return "http://www.albumartexchange.com/covers.php?%s" % params
+
+def get_json(artist, album, country):
+    params = urllib.urlencode({'entity': 'album', 'country': country, 'term': search_term(artist,album)})
+    f = urllib.urlopen("http://itunes.apple.com/search?%s" % params)
+    return json.load(f)[u'results']
+
+class AlbumDescription:
+    def __init__(self, itunes_dict):
+        self.artist = itunes_dict[u'artistName']
+        self.album = itunes_dict[u'collectionName']
+        self.date = itunes_dict[u'releaseDate']
+        self.tracks = itunes_dict[u'trackCount']
+        self.artwork = itunes_dict[u'artworkUrl100']
+
+    def __unicode__(self):
+        return "Artist: %s\nAlbum: %s\nDate: %s\tTracks: %s\n" % (self.artist, self.album, self.date, self.tracks)
+
+    def get_image_url(self):
+        baseurl = self.artwork[0:-1*len("100x100-75.jpg")]
+        if self.check_image_exists(baseurl + "jpg"):
+            baseurl += "jpg"
+        else:
+            baseurl += "600x600-75.jpg"
+        return baseurl
+
+    def check_image_exists(self, url):
+        try:
+            response = urllib2.urlopen(url)
+            code = response.getcode();
+            if code == 200 or code == 300 or code == 301 or code == 302:
+                content_type = response.info().gettype()
+                if content_type == "image/jpeg" or content_type == "image/tiff":
+                    return True
+        except urllib2.HTTPError, e:
+            pass
+        return False
+
+    def image_body(self):
+        return urllib2.urlopen(url)
+
+def make_results_array(artist, album):
+    all_results = []
+    countries = ['US','JP','KR']
+
+    for country in countries:
+        results = get_json(artist, album, country)
+        for result in results:
+            all_results.append(AlbumDescription(result))
+
+    return all_results
+
+# START OF SCRIPT
+
+parser = argparse.ArgumentParser(description='Retreives album art from remote sources.')
+parser.add_argument('--path', dest="path", type=str, help='where the music is', default=os.getcwd())
+parser.add_argument('--artist', dest="artist", type=str, help='artist name')
+parser.add_argument('--album', dest="album", type=str, help='album name')
+parser.add_argument('-w', action="store_true", dest="write", help='write out cover art')
+args = parser.parse_args()
+
+print
+print "ALBUM ART FINDER"
+print "================"
+print "Directory: " + unicode(args.path)
+print "Artist:    " + unicode(args.artist)
+print "Album:     " + unicode(args.album)
+print "Write Art: " + unicode(args.write)
+print
+print "Showing all results..."
+print
+
+i = 0
+results = make_results_array(args.artist, args.album)
+for result in results:
+    print "|| " + str(i) + " ||"
+    print unicode(result)
+    i += 1
+
+valid_option = False
+option = -1
+while not valid_option:
+    option = input("Choose an option: ")
+    if option < 0 or option >= len(results):
+        valid_option = False
+        continue
+
+    url = results[option].get_image_url()
+    subprocess.call(['open', url])
+    path_to_write = os.path.join(args.path,'cover.jpg')
+
+    if args.write:
+        print "Would write cover image to " + unicode(path_to_write)
+        print "Is this image ok? (Y or y to write to file)"
+    else:
+        print "Is this image ok?"
+
+    okay = raw_input("[Y or y]: ")
+    if str(okay) == 'y' or str(okay) == "Y":
+        valid_option = True
+        if args.write:
+            f = open(path_to_write, 'wb')
+            f.write(results[option].image_body().read())
+            print "Cover art written."
+        print
+        print "Just in case, I'll open up Album Art Exchange..."
+        subprocess.call(['open', get_albumartexchange_url(args.artist, args.album)])
+    else:
+        valid_option = False
+        continue
+
+print
+print "Finished."
+print
+

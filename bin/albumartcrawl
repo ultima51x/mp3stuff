@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+
+import os
+import eyed3
+import termcolor
+
+def is_mp3(filename):
+    filename, ext = os.path.splitext(filename)
+    if ext == ".mp3" or ext == ".MP3":
+        return True
+    else:
+        return False
+
+def crawl(path):
+    for (path, dirs, files) in os.walk(path):
+        # If there's cover art, skip
+        if "cover.jpg" in files:
+            continue
+        for f in files:
+            if is_mp3(f):
+                full_path = os.path.join(path,f)
+                music_file = eyed3.load(full_path)
+                from subprocess import call
+                print termcolor.colored("Finding cover art for " + music_file.tag.artist + " - " + music_file.tag.album, 'green')
+                call(["albumart", "--path", path, "--artist", music_file.tag.artist, "--album", music_file.tag.album, "-w"])
+                break
+
+crawl(".")

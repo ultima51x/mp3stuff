@@ -192,10 +192,10 @@ class ReplayGainValidator:
 
 class AlbumArtistValidator:
     def validate(self,f):
-        return f.tag.getTextFrame("TPE2") is None or f.tag.getTextFrame("TPE2") != f.tag.artist
+        return f.tag.getTextFrame("TPE2") != None and f.tag.getTextFrame("TPE2").lstrip() != ""
 
     def message(self,f):
-        return "Are you sure you want album artist tags?"
+        return "Album artist is blank."
 
 class ExtraTextTagValidator:
     def __init__(self):

@@ -1,4 +1,7 @@
 import eyed3
+from PIL import Image
+from StringIO import StringIO
+import os.path
 
 class ValidationAggregator:
     def __init__(self):
@@ -15,7 +18,7 @@ class ValidationAggregator:
             return messages
         for v in self.validators:
             if v.validate(self.f) == False:
-                messages.append(v.message())
+                messages.append(v.message(self.f))
         return messages
 
     @staticmethod
@@ -33,7 +36,7 @@ class ValidationAggregator:
         validator.add(TotalDiscsValidator())
         validator.add(DateValidator())
         validator.add(NoGenreValidator())
-        validator.add(NoImagesValidator())
+        validator.add(FrontCoverValidator())
         validator.add(NoCommentValidator())
         validator.add(NoLyricsValidator())
         validator.add(ReplayGainValidator())
@@ -47,7 +50,7 @@ class ID3v2VersionValidator:
         one, two, three = f.tag.version
         return two == 3
 
-    def message(self):
+    def message(self,f):
         return "ID3v2 version is not 2.3"
 
 class NoID3v1TagValidator:
@@ -55,28 +58,28 @@ class NoID3v1TagValidator:
         v1 = eyed3.load(f.path,eyed3.id3.tag.ID3_V1)
         return v1.tag is None
 
-    def message(self):
+    def message(self,f):
         return "ID3v1 tag exists."
 
 class ArtistValidator:
     def validate(self,f):
         return f.tag.artist != None and f.tag.artist.lstrip() != ""
 
-    def message(self):
+    def message(self,f):
         return "Artist cannot be empty or blank."
 
 class AlbumValidator:
     def validate(self,f):
         return f.tag.album != None and f.tag.album.lstrip() != ""
 
-    def message(self):
+    def message(self,f):
         return "Album cannot be empty or blank."
 
 class TitleValidator:
     def validate(self,f):
         return f.tag.title != None and f.tag.title.lstrip() != ""
 
-    def message(self):
+    def message(self,f):
         return "Title cannot be empty or blank."
 
 class TrackNumberValidator:
@@ -84,7 +87,7 @@ class TrackNumberValidator:
         track, total = f.tag.track_num
         return track != None
 
-    def message(self):
+    def message(self,f):
         return "Track number cannot be empty or blank."
 
 class TotalTracksValidator:
@@ -92,7 +95,7 @@ class TotalTracksValidator:
         track, total = f.tag.track_num
         return total != None
 
-    def message(self):
+    def message(self,f):
         return "Total # tracks cannot be empty or blank."
 
 class DiscNumberValidator:
@@ -100,7 +103,7 @@ class DiscNumberValidator:
         disc, total = f.tag.disc_num
         return disc != None
 
-    def message(self):
+    def message(self,f):
         return "Disc number cannot be empty or blank."
 
 class TotalDiscsValidator:
@@ -108,42 +111,75 @@ class TotalDiscsValidator:
         disc, total = f.tag.disc_num
         return total != None
 
-    def message(self):
+    def message(self,f):
         return "Total # discs cannot be empty or blank."
 
 class DateValidator:
     def validate(self,f):
         return f.tag.recording_date != None and len(str(f.tag.recording_date)) == 4
 
-    def message(self):
+    def message(self,f):
         return "Date cannot be empty, blank, or not 4 digits."
 
 class NoGenreValidator:
     def validate(self,f):
         return f.tag.genre is None
 
-    def message(self):
+    def message(self,f):
         return "I don't like genres."
 
-class NoImagesValidator:
+class FrontCoverValidator:
     def validate(self,f):
-        return len(f.tag.images) == 0
+        self.reason = ""
+        if (len(f.tag.images) == 0):
+            self.reason += "There is no image. "
+        elif (len(f.tag.images) > 1):
+            self.reason += "There are too many images. "
+        else:
+            image = f.tag.images[0]
+            im_data = Image.open(StringIO(image.image_data))
+            width, height = im_data.size
+            if (image.picture_type != image.FRONT_COVER):
+                self.reason += "The image is not the front cover. "
+            if (image.mime_type != "image/jpeg"):
+                self.reason += "The image is not a jpeg. "
+            if (width != height):
+                self.reason += "Height and width are not equivalent. "
+            if (width < 500 or height < 500):
+                self.reason += "Height or width < 500px. "
 
-    def message(self):
-        return "Embedded images exist. Add them after they're in iTunes."
+            path_to_use = os.path.join(os.path.dirname(f.path),"cover.jpg")
+            if (os.path.exists(path_to_use)):
+                file_image = Image.open(path_to_use)
+                file_width, file_height = file_image.size
+                if(file_width != width or file_height != height):
+                    self.reason += "Embedded and file cover art mismatch. "
+            else:
+                self.reason += "cover.jpg does not exist. "
+
+        if (self.reason == ""):
+            return True
+        else:
+            return False
+
+    def message(self,f):
+        return self.reason
 
 class NoCommentValidator:
     def validate(self,f):
         return len(f.tag.comments) == 0
 
-    def message(self):
-        return "Are you sure you want comments?"
+    def message(self,f):
+        ret_str = ""
+        for a in f.tag.comments:
+            ret_str += "TEXT: " + str(a.text) + " DESC: " + str(a.description)
+        return "Comments? " + ret_str
 
 class NoLyricsValidator:
     def validate(self,f):
         return len(f.tag.lyrics) == 0
 
-    def message(self):
+    def message(self,f):
         return "Lyrics should not exist."
 
 class ReplayGainValidator:
@@ -151,14 +187,14 @@ class ReplayGainValidator:
         tf = f.tag.user_text_frames
         return tf.get(u"replaygain_album_gain") != None and tf.get(u"replaygain_album_peak") != None and tf.get(u"replaygain_track_gain") != None and tf.get(u"replaygain_track_peak") != None
 
-    def message(self):
+    def message(self,f):
         return "Replay gain tags should exist."
 
 class AlbumArtistValidator:
     def validate(self,f):
         return f.tag.getTextFrame("TPE2") is None or f.tag.getTextFrame("TPE2") != f.tag.artist
 
-    def message(self):
+    def message(self,f):
         return "Are you sure you want album artist tags?"
 
 class ExtraTextTagValidator:
@@ -217,7 +253,7 @@ class ExtraTextTagValidator:
                     self.messages.append(t[0] + " (" + t[1]  + ")")
         return state
 
-    def message(self):
+    def message(self,f):
         message_string = ', '.join(self.messages)
         self.messages = []
         return "Extra Text Frames: " + message_string
@@ -236,7 +272,7 @@ class CustomTextFramesValidator:
                     self.extra_frames.append(t.description)
         return status
 
-    def message(self):
+    def message(self,f):
         message = ', '.join(self.extra_frames)
         self.extra_frames = []
         return "Extra TXXX frames found: " + message

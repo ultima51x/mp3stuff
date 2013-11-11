@@ -40,6 +40,7 @@ class ValidationAggregator:
         validator.add(NoCommentValidator())
         validator.add(NoLyricsValidator())
         validator.add(ReplayGainValidator())
+        validator.add(AlbumArtistValidator())
         validator.add(ExtraTextTagValidator())
         validator.add(CustomTextFramesValidator())
         return validator
@@ -188,6 +189,13 @@ class ReplayGainValidator:
 
     def message(self,f):
         return "Replay gain tags should exist."
+
+class AlbumArtistValidator:
+    def validate(self,f):
+        return f.tag.getTextFrame("TPE2") is None or f.tag.getTextFrame("TPE2") != f.tag.artist
+
+    def message(self,f):
+        return "Are you sure you want album artist tags?"
 
 class ExtraTextTagValidator:
     def __init__(self):

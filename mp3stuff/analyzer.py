@@ -19,7 +19,12 @@ class Analyzer:
             if len(messages) == 0:
                 print termcolor.colored(mp3 + " is good.", 'green')
             else:
-                print termcolor.colored(mp3 + " has problems.", 'yellow')
+                print termcolor.colored(mp3 + " has " + str(len(messages)) + " problems:", 'yellow'),
+                i = 0
                 for m in messages:
-                    print "  ",
-                    print termcolor.colored(m,'red')
+                    color = 'red'
+                    if i % 2 == 1:
+                        color = 'yellow'
+                    print termcolor.colored(m,color),
+                    i += 1
+                print

@@ -6,6 +6,8 @@ import urllib
 import json
 import urllib2
 import subprocess
+from PIL import Image
+from StringIO import StringIO
 
 def search_term(artist, album):
     term = ""
@@ -72,7 +74,6 @@ def make_results_array(artist, album):
     return all_results
 
 # START OF SCRIPT
-
 parser = argparse.ArgumentParser(description='Retreives album art from remote sources.')
 parser.add_argument('--path', dest="path", type=str, help='where the music is', default=os.getcwd())
 parser.add_argument('--artist', dest="artist", type=str, help='artist name')
@@ -91,6 +92,10 @@ print
 print "Showing all results..."
 print
 
+def albumartexchange():
+    print "Opening album art exchange"
+    subprocess.call(['open', get_albumartexchange_url(args.artist, args.album)])
+
 i = 0
 results = make_results_array(args.artist, args.album)
 for result in results:
@@ -99,6 +104,11 @@ for result in results:
     i += 1
 
 valid_option = False
+
+if len(results) == 0:
+    albumartexchange()
+    valid_option = True
+
 option = -1
 while not valid_option:
     option = input("Choose an option: ")
@@ -116,16 +126,25 @@ while not valid_option:
     else:
         print "Is this image ok?"
 
-    okay = raw_input("[Y or y]: ")
+    okay = raw_input("[Y or y] to accept, [N or n] to skip and open album art exchange: ")
     if str(okay) == 'y' or str(okay) == "Y":
         valid_option = True
         if args.write:
-            f = open(path_to_write, 'wb')
-            f.write(results[option].image_body().read())
-            print "Cover art written."
+            image = results[option].image_body().read()
+            im_data = Image.open(StringIO(image))
+            width, height = im_data.size
+            if (width != height):
+                print "The width and height are not equal to each other.",
+                print str(width), "x", str(height), "Will not be writing the cover art."
+                albumartexchange()
+            else:
+                f = open(path_to_write, 'wb')
+                f.write(results[option].image_body().read())
+                print "Cover art written."
+    elif str(okay) == 'n' or str(okay) == "N":
+        valid_option = True
         print
-        print "Just in case, I'll open up Album Art Exchange..."
-        subprocess.call(['open', get_albumartexchange_url(args.artist, args.album)])
+        albumartexchange()
     else:
         valid_option = False
         continue

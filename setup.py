@@ -9,7 +9,8 @@ setup(
     scripts=["bin/id3validate","bin/id3strip","bin/diffmusic","bin/albumart","bin/albumartcrawl"],
     description="This does id3 stuff",
     install_requires=[
-        "eyeD3 >= 0.7.1",
+        "eyeD3 >= 0.7.4",
         "termcolor >= 1.1.0",
+        "PIL >= 1.1.7"
     ],
 )

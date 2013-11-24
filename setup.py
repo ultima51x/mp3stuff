@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(
-    name="Mp3Stuff",
+    name="mp3stuff",
     version="0.0.1",
     author="David Hwang",
     author_email="d.hw4ng@gmail.com",

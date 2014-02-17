@@ -11,6 +11,6 @@ setup(
     install_requires=[
         "eyeD3 >= 0.7.4",
         "termcolor >= 1.1.0",
-        "PIL >= 1.1.7"
+        "Pillow >= 2.0.0"
     ],
 )

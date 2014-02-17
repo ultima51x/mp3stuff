@@ -131,31 +131,19 @@ class NoGenreValidator:
 class FrontCoverValidator:
     def validate(self,f):
         self.reason = ""
-        if (len(f.tag.images) == 0):
-            self.reason += "There is no image. "
-        elif (len(f.tag.images) > 1):
-            self.reason += "There are too many images. "
-        else:
-            image = f.tag.images[0]
-            im_data = Image.open(StringIO(image.image_data))
-            width, height = im_data.size
-            if (image.picture_type != image.FRONT_COVER):
-                self.reason += "The image is not the front cover. "
-            if (image.mime_type != "image/jpeg"):
-                self.reason += "The image is not a jpeg. "
+        if (len(f.tag.images) > 0):
+            self.reason += "There is an embedded image. "
+
+        path_to_use = os.path.join(os.path.dirname(f.path),"cover.jpg")
+        if (os.path.exists(path_to_use)):
+            image = Image.open(path_to_use)
+            width, height = image.size
             if (width != height):
                 self.reason += "Height and width are not equivalent. "
             if (width < 500 or height < 500):
                 self.reason += "Height or width < 500px. "
-
-            path_to_use = os.path.join(os.path.dirname(f.path),"cover.jpg")
-            if (os.path.exists(path_to_use)):
-                file_image = Image.open(path_to_use)
-                file_width, file_height = file_image.size
-                if(file_width != width or file_height != height):
-                    self.reason += "Embedded and file cover art mismatch. "
-            else:
-                self.reason += "cover.jpg does not exist. "
+        else:
+            self.reason += "cover.jpg does not exist. "
 
         if (self.reason == ""):
             return True

@@ -13,7 +13,7 @@ class Mp3:
             return False
 
 class Mp3Collection:
-    def __init__(self, folder_path=".", itunes_path=os.path.join(os.path.expanduser('~'),"Music/mp3")):
+    def __init__(self, folder_path=".", itunes_path=os.path.join(os.path.expanduser('~'),"Music","mp3")):
         self.folder_path = folder_path
         self.itunes_path = itunes_path
 

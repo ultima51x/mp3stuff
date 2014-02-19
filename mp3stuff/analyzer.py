@@ -17,9 +17,14 @@ class Analyzer:
         for mp3 in collection.folder_mp3s():
             messages = self.validator.validate_all(mp3)
             if len(messages) == 0:
-                print mp3, "is good."
+                print termcolor.colored(mp3 + " is good.", 'green')
             else:
-                print mp3, "has", len(messages), "problems:",
+                print termcolor.colored(mp3 + " has " + str(len(messages)) + " problems:", 'yellow'),
+                i = 0
                 for m in messages:
-                    print m,
+                    color = 'red'
+                    if i % 2 == 1:
+                        color = 'yellow'
+                    print termcolor.colored(m,color),
+                    i += 1
                 print

@@ -33,7 +33,7 @@ class Mp3Collection:
             for f in files:
                 if Mp3.is_mp3(f):
                     full_path = unicode(os.path.join(path,f),'utf-8')
-                    s.add(full_path)
+                    s.add(unicodedata.normalize('NFC',full_path))
         return s
 
     def not_in_my_collection(self):

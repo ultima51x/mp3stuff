@@ -21,7 +21,10 @@ class Mp3Collection:
         s = set()
         for line in open(self.itunes_path):
             if "<key>Location</key>" in line and "Music/mp3" in line:
-                filename = re.search(r'<string>file://localhost(.+)</string>',line).group(1)
+                match = re.search(r'<string>file://localhost(.+)</string>',line)
+                if match is None:
+                    match = re.search(r'<string>file://(.+)</string>',line)
+                filename = match.group(1)
                 decoded_filename = unicode(urllib.unquote(filename.replace("&#38;","&")),'utf-8')
                 if Mp3.is_mp3(decoded_filename):
                     s.add(unicodedata.normalize('NFC',decoded_filename))

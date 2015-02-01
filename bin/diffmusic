@@ -4,7 +4,7 @@ import os
 import termcolor
 import argparse
 
-from mp3stuff.mp3 import Mp3Collection
+from mp3stuff.music_collection import ItunesCollection
 
 HOME = os.path.expanduser("~")
 ITUNES = "Music/iTunes/iTunes Music Library.xml"
@@ -17,7 +17,7 @@ parser.add_argument('--musicdir', help='music directory', action="store_true", d
 args = parser.parse_args()
 
 
-collection = Mp3Collection(args.musicdir, args.itunesdir)
+collection = ItunesCollection(args.musicdir, args.itunesdir)
 
 print termcolor.colored("MP3 files not in iTunes...",'green')
 mfi = collection.missing_from_itunes()

@@ -3,7 +3,7 @@ import os
 import termcolor
 
 from validators import ValidationAggregator
-from mp3 import Mp3Collection
+from music_collection import MusicCollection
 
 class Analyzer:
     def __init__(self):
@@ -11,15 +11,15 @@ class Analyzer:
 
     def analyze_recursively(self, path):
         print "-------------------------"
-        print "STARTING id3 TAG ANALYSIS"
+        print "STARTING TAG ANALYSIS"
         print "-------------------------"
-        collection = Mp3Collection(path)
-        for mp3 in collection.folder_mp3s():
-            messages = self.validator.validate_all(mp3)
+        collection = MusicCollection(path)
+        for file in collection.music():
+            messages = self.validator.validate_all(file)
             if len(messages) == 0:
-                print termcolor.colored(mp3 + " is good.", 'green')
+                print termcolor.colored(file + " is good.", 'green')
             else:
-                print termcolor.colored(mp3 + " has " + str(len(messages)) + " problems:", 'yellow'),
+                print termcolor.colored(file + " has " + str(len(messages)) + " problems:", 'yellow'),
                 i = 0
                 for m in messages:
                     color = 'red'

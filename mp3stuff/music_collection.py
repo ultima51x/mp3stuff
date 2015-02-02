@@ -5,6 +5,7 @@ import unicodedata
 
 from mp3stuff.validators.mp3 import Validator as Mp3Validator
 from mp3stuff.validators.flac import Validator as FlacValidator
+from mp3stuff.validators.mp4 import Validator as Mp4Validator
 
 class MusicCollection:
     def __init__(self, folder="."):
@@ -17,7 +18,7 @@ class MusicCollection:
 
     @staticmethod
     def validators():
-        return {".mp3": Mp3Validator, ".flac": FlacValidator}
+        return {".mp3": Mp3Validator, ".flac": FlacValidator, ".m4a": Mp4Validator}
 
     @classmethod
     def is_music(cls,filename):

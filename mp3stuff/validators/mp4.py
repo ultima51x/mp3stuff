@@ -13,7 +13,7 @@ MAPPING = {
     'encoded_by': '\xa9too',
     'tracknumber': 'trkn',
     'discnumber': 'disk',
-    'catalognumber': '----:com.apple.iTunes:CATALOGNUMBER',
+    'source': '----:com.apple.iTunes:SOURCE',
     'replaygain_album_gain': '----:com.apple.iTunes:replaygain_album_gain',
     'replaygain_album_peak': '----:com.apple.iTunes:replaygain_album_peak',
     'replaygain_track_gain': '----:com.apple.iTunes:replaygain_track_gain',

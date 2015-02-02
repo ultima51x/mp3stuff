@@ -130,7 +130,7 @@ class ReplayGain:
 class ExtraTags:
     def extra_fields(self,f):
         tagfields = set(f.keys())
-        okfields = set(['artist','albumartist','album','title','tracknumber','tracktotal','discnumber','disctotal','date','genre','comment','replaygain_album_gain','replaygain_album_peak','replaygain_track_gain','replaygain_track_peak'])
+        okfields = set(['artist','albumartist','album','title','tracknumber','tracktotal','discnumber','disctotal','date','genre','comment','replaygain_album_gain','replaygain_album_peak','replaygain_track_gain','replaygain_track_peak','source'])
 
         a = []
         for field in tagfields - okfields:

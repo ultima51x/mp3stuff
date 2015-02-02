@@ -215,7 +215,7 @@ class CustomTextFrames:
         self.extra_frames = []
 
     def check(self,f):
-        valid_frames = [u'replaygain_album_gain',u'replaygain_album_peak',u'replaygain_track_gain',u'replaygain_track_peak',u'CATALOGNUMBER']
+        valid_frames = [u'replaygain_album_gain',u'replaygain_album_peak',u'replaygain_track_gain',u'replaygain_track_peak',u'SOURCE']
         status = True
         for t in f.tag.user_text_frames:
             if t.description not in valid_frames:

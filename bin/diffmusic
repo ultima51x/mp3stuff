@@ -19,13 +19,13 @@ args = parser.parse_args()
 
 collection = ItunesCollection(args.musicdir, args.itunesdir)
 
-print termcolor.colored("MP3 files not in iTunes...",'green')
+print termcolor.colored("Files not in iTunes...",'green')
 mfi = collection.missing_from_itunes()
 for f in mfi:
     print f
 print termcolor.colored(str(len(mfi)) + " files found.",'green')
 
-print termcolor.colored("MP3 files missing or not in my collection...",'red')
+print termcolor.colored("Files missing or not in my collection...",'red')
 nimc = collection.not_in_my_collection()
 for f in nimc:
     print f

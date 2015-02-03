@@ -65,7 +65,7 @@ class ItunesCollection(MusicCollection):
     def music(self):
         s = set()
         for line in open(self.itunes_xml_path):
-            if "<key>Location</key>" in line and "Music/mp3" in line:
+            if "<key>Location</key>" in line and ("Music/mp3" in line or "Music/alac" in line):
                 match = re.search(r'<string>file://localhost(.+)</string>',line)
                 if match is None:
                     match = re.search(r'<string>file://(.+)</string>',line)

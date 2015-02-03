@@ -8,8 +8,8 @@ from mp3stuff.validators.flac import Validator as FlacValidator
 from mp3stuff.validators.mp4 import Validator as Mp4Validator
 
 class MusicCollection:
-    def __init__(self, folder="."):
-        self.folder = folder
+    def __init__(self, folders=["."]):
+        self.folders = folders
 
     @staticmethod
     def extension(filename):
@@ -48,19 +48,20 @@ class MusicCollection:
 
     def music(self):
         s = set()
-        for (path, dirs, files) in os.walk(self.folder):
-            for f in files:
-                if self.is_music(f):
-                    full_path = unicode(os.path.join(path,f),'utf-8')
-                    s.add(unicodedata.normalize('NFC',full_path))
+        for folder in self.folders:
+            for (path, dirs, files) in os.walk(folder):
+                for f in files:
+                    if self.is_music(f):
+                        full_path = unicode(os.path.join(path,f),'utf-8')
+                        s.add(unicodedata.normalize('NFC',full_path))
         return s
 
 # TODO need a more general case to avoid podcasts
 class ItunesCollection(MusicCollection):
-    def __init__(self, folder, itunes_xml_path):
-        self.folder = folder
+    def __init__(self, folders, itunes_xml_path):
+        self.folders = folders
         self.itunes_xml_path = itunes_xml_path
-        self.music_collection = MusicCollection(folder)
+        self.music_collection = MusicCollection(self.folders)
 
     def music(self):
         s = set()

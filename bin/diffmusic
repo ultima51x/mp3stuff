@@ -8,16 +8,14 @@ from mp3stuff.music_collection import ItunesCollection
 
 HOME = os.path.expanduser("~")
 ITUNES = "Music/iTunes/iTunes Music Library.xml"
-MUSIC = "Music/mp3"
+ALAC = "Music/alac"
+MP3 = "Music/mp3"
 
 parser = argparse.ArgumentParser(description='Compares my music folder with the iTunes collection.')
 parser.add_argument('--addtoitunes', help='adds music to iTunes', action="store_true")
-parser.add_argument('--itunesdir', help='xml file of iTunes collection', action="store_true", default=os.path.join(HOME,ITUNES))
-parser.add_argument('--musicdir', help='music directory', action="store_true", default=os.path.join(HOME,MUSIC))
 args = parser.parse_args()
 
-
-collection = ItunesCollection(args.musicdir, args.itunesdir)
+collection = ItunesCollection([os.path.join(HOME,ALAC),os.path.join(HOME,MP3)],os.path.join(HOME,ITUNES))
 
 print termcolor.colored("Files not in iTunes...",'green')
 mfi = collection.missing_from_itunes()

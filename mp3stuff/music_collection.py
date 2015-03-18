@@ -52,8 +52,7 @@ class MusicCollection:
             for (path, dirs, files) in os.walk(folder):
                 for f in files:
                     if self.is_music(f):
-                        full_path = unicode(os.path.join(path,f),'utf-8')
-                        s.add(unicodedata.normalize('NFC',full_path))
+                        s.add(os.path.join(path,f))
         return s
 
 # TODO need a more general case to avoid podcasts
@@ -71,9 +70,9 @@ class ItunesCollection(MusicCollection):
                 if match is None:
                     match = re.search(r'<string>file://(.+)</string>',line)
                 filename = match.group(1)
-                decoded_filename = unicode(urllib.unquote(filename.replace("&#38;","&")),'utf-8')
+                decoded_filename = urllib.unquote(filename.replace("&#38;","&"))
                 if self.is_music(decoded_filename):
-                    s.add(unicodedata.normalize('NFC',decoded_filename))
+                    s.add(decoded_filename)
         return s
 
     def not_in_my_collection(self):

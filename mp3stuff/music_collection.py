@@ -9,7 +9,7 @@ from mp3stuff.validators.flac import Validator as FlacValidator
 from mp3stuff.validators.mp4 import Validator as Mp4Validator
 
 class MusicCollection:
-    def __init__(self, folders=["."]):
+    def __init__(self, folders=[os.getcwdu()]):
         self.folders = folders
 
     @staticmethod

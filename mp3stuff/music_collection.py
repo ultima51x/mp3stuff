@@ -31,7 +31,10 @@ class MusicCollection:
     @staticmethod
     def normalized_path(path):
         if os.name == 'posix':
-            return unicodedata.normalize('NFC',unicode(path,'utf-8'))
+            if type(path) == unicode:
+                return path
+            else:
+                return unicodedata.normalize('NFC',unicode(path,'utf-8'))
         else:
             return path
 

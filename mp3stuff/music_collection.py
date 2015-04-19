@@ -2,13 +2,14 @@ import os
 import re
 import urllib
 import unicodedata
+import os
 
 from mp3stuff.validators.mp3 import Validator as Mp3Validator
 from mp3stuff.validators.flac import Validator as FlacValidator
 from mp3stuff.validators.mp4 import Validator as Mp4Validator
 
 class MusicCollection:
-    def __init__(self, folders=["."]):
+    def __init__(self, folders=[os.getcwdu()]):
         self.folders = folders
 
     @staticmethod
@@ -26,6 +27,16 @@ class MusicCollection:
             return True
         else:
             return False
+
+    @staticmethod
+    def normalized_path(path):
+        if os.name == 'posix':
+            if type(path) == unicode:
+                return path
+            else:
+                return unicodedata.normalize('NFC',unicode(path,'utf-8'))
+        else:
+            return path
 
     def validate(self,filename):
         ext = self.extension(filename)
@@ -52,8 +63,7 @@ class MusicCollection:
             for (path, dirs, files) in os.walk(folder):
                 for f in files:
                     if self.is_music(f):
-                        full_path = unicode(os.path.join(path,f),'utf-8')
-                        s.add(unicodedata.normalize('NFC',full_path))
+                        s.add(self.normalized_path(os.path.join(path,f)))
         return s
 
 # TODO need a more general case to avoid podcasts
@@ -71,9 +81,9 @@ class ItunesCollection(MusicCollection):
                 if match is None:
                     match = re.search(r'<string>file://(.+)</string>',line)
                 filename = match.group(1)
-                decoded_filename = unicode(urllib.unquote(filename.replace("&#38;","&")),'utf-8')
+                decoded_filename = urllib.unquote(filename.replace("&#38;","&"))
                 if self.is_music(decoded_filename):
-                    s.add(unicodedata.normalize('NFC',decoded_filename))
+                    s.add(self.normalized_path(decoded_filename))
         return s
 
     def not_in_my_collection(self):

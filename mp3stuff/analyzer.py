@@ -8,7 +8,11 @@ class Analyzer:
         print "-------------------------"
         print "STARTING TAG ANALYSIS"
         print "-------------------------"
-        collection = MusicCollection([path])
+        collection = None
+        if path is None:
+            collection =  MusicCollection()
+        else:
+            collection =  MusicCollection([path])
         files = list(collection.music())
         files.sort()
         for file in files:

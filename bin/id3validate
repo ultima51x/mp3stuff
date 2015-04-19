@@ -2,11 +2,15 @@
 import os
 import sys
 import argparse
+import codecs
 
 from mp3stuff.analyzer import Analyzer
 
+# way to get unicode to print on windows
+sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+
 parser = argparse.ArgumentParser(description='Make sure my id3 tags are to my liking.')
-parser.add_argument('file', nargs='?', metavar="file", type=str, help='directory with music to analyze', default=os.getcwd())
+parser.add_argument('file', nargs='?', metavar="file", help='directory with music to analyze', default=None)
 args = parser.parse_args()
 
 Analyzer().analyze_recursively(args.file)

@@ -1,4 +1,3 @@
-import os
 import re
 import urllib
 import unicodedata
@@ -46,14 +45,14 @@ class MusicCollection:
         messages = []
         for r in vr.prerules():
             cr = r()
-            if cr.check(f) == False:
+            if cr.check(f) is False:
                 messages.append(cr.message(f))
         if len(messages) > 0:
             return messages
 
         for r in vr.rules():
             cr = r()
-            if cr.check(f) == False:
+            if cr.check(f) is False:
                 messages.append(cr.message(f))
         return messages
 

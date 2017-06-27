@@ -1,22 +1,45 @@
 from PIL import Image
-import eyed3
+from mutagen.mp3 import MP3
 import os.path
 
 class NoTags:
     def check(self,f):
-        return not(f.tag is None)
+        return len(f.tags) > 0
 
     def message(self,f):
         return "There are no tags"
 
+class TextField:
+    def field(self):
+        raise NotImplementedError
+
+    def check(self,f):
+        t = f.tags.get(self.field())
+        return t != None and len(t) == 1 and t[0].lstrip() != ""
+
+    def message(self,f):
+        return self.description() + " cannot be empty or blank."
+
+class TupleField:
+    def field(self):
+        raise NotImplementedError
+
+    def check(self,f):
+        t = f.tags.get(self.field())
+        return t != None and len(t) == 1 and len(t[0]) == 2
+
+    def message(self,f):
+        return self.description() + " must have a number and a total."
+
 class ID3v2Version:
     def check(self,f):
-        one, two, three = f.tag.version
+        one, two, three = f.tags.version
         return two == 3
 
     def message(self,f):
         return "ID3v2 version is not 2.3"
 
+# TODO
 class NoID3v1Tag:
     def check(self,f):
         v1 = eyed3.load(f.path,eyed3.id3.tag.ID3_V1)
@@ -25,73 +48,67 @@ class NoID3v1Tag:
     def message(self,f):
         return "ID3v1 tag exists."
 
-class Artist:
-    def check(self,f):
-        return f.tag.artist != None and f.tag.artist.lstrip() != ""
+class Artist(TextField):
+    def description(self):
+        'Artist'
+
+    def field(self):
+        return "TPE1"
+
+class AlbumArtist(TextField):
+    def description(self):
+        'Album Artist'
+
+    def field(self):
+        return "TPE2"
+
+class Album(TextField):
+    def description(self):
+        'Album'
+
+    def field(self):
+        return "TALB"
+
+class Title(TextField):
+    def description(self):
+        'Title'
+
+    def field(self):
+        return "TIT2"
+
+class NoGenre(TextField):
+    def description(self):
+        'Genre'
+
+    def field(self):
+        return "TCON"
 
     def message(self,f):
-        return "Artist cannot be empty or blank."
+        "Genre should not exist"
 
-class Album:
-    def check(self,f):
-        return f.tag.album != None and f.tag.album.lstrip() != ""
+class TrackNumber(TupleField):
+    def description(self):
+        'Track Number'
 
-    def message(self,f):
-        return "Album cannot be empty or blank."
+    def field(self):
+        return "TRCK"
 
-class Title:
-    def check(self,f):
-        return f.tag.title != None and f.tag.title.lstrip() != ""
+class DiscNumber(TupleField):
+    def description(self):
+        'Disc Number'
 
-    def message(self,f):
-        return "Title cannot be empty or blank."
-
-class TrackNumber:
-    def check(self,f):
-        track, total = f.tag.track_num
-        return track != None
-
-    def message(self,f):
-        return "Track number cannot be empty or blank."
-
-class TotalTracks:
-    def check(self,f):
-        track, total = f.tag.track_num
-        return total != None
-
-    def message(self,f):
-        return "Total # tracks cannot be empty or blank."
-
-class DiscNumber:
-    def check(self,f):
-        disc, total = f.tag.disc_num
-        return disc != None
-
-    def message(self,f):
-        return "Disc number cannot be empty or blank."
-
-class TotalDiscs:
-    def check(self,f):
-        disc, total = f.tag.disc_num
-        return total != None
-
-    def message(self,f):
-        return "Total # discs cannot be empty or blank."
+    def field(self):
+        return "TPOS"
 
 class Date:
     def check(self,f):
-        return f.tag.recording_date != None and len(str(f.tag.recording_date)) == 4
+        t = f.get('TDRC')
+        return t != None and str(t).isdigit() and len(str(t)) == 4
 
     def message(self,f):
         return "Date cannot be empty, blank, or not 4 digits."
 
-class NoGenre:
-    def check(self,f):
-        return f.tag.genre is None
-
-    def message(self,f):
-        return "I don't like genres."
-
+# TODO
 class FrontCover:
     def check(self,f):
         self.reason = ""
@@ -119,14 +136,15 @@ class FrontCover:
 
 class NoComment:
     def check(self,f):
-        return len(f.tag.comments) == 0
+        return len(f.tags.getall('COMM')) == 0
 
     def message(self,f):
         ret_str = ""
-        for a in f.tag.comments:
-            ret_str += "TEXT: " + str(a.text) + " DESC: " + str(a.description)
+        for a in f.tags.getall('COMM'):
+            ret_str += "TEXT: " + str(a)
         return "Comments? " + ret_str
 
+# TODO
 class NoLyrics:
     def check(self,f):
         return len(f.tag.lyrics) == 0
@@ -134,20 +152,21 @@ class NoLyrics:
     def message(self,f):
         return "Lyrics should not exist."
 
+class CustomFieldChecker:
+    def check(self,f,field):
+        tags = f.tags.getall('TXXX')
+        for t in tags:
+            if t.desc == field:
+                return len(t.text) > 1
+        return False
+
 class ReplayGain:
     def check(self,f):
-        tf = f.tag.user_text_frames
-        return tf.get(u"replaygain_album_gain") != None and tf.get(u"replaygain_album_peak") != None and tf.get(u"replaygain_track_gain") != None and tf.get(u"replaygain_track_peak") != None
+        c = CustomFieldChecker()
+        return c.check(f,u"replaygain_album_gain") and c.check(f,u"replaygain_album_peak") and c.check(f,u"replaygain_track_gain") and c.check(f,u"replaygain_track_peak")
 
     def message(self,f):
         return "Replay gain tags should exist."
-
-class AlbumArtist:
-    def check(self,f):
-        return f.tag.getTextFrame("TPE2") != None and f.tag.getTextFrame("TPE2").lstrip() != ""
-
-    def message(self,f):
-        return "Album artist is blank."
 
 class ExtraTextTag:
     def __init__(self):
@@ -199,7 +218,7 @@ class ExtraTextTag:
     def check(self,f):
         state = True
         for t in self.text_tags:
-            if f.tag.getTextFrame(t[0]) is not None:
+            if f.tags.get(t[0]) is not None:
                 if f.tag.getTextFrame(t[0]).lstrip() != '':
                     state = False
                     self.messages.append(t[0] + " (" + t[1]  + ")")
@@ -215,19 +234,8 @@ class CustomTextFrames:
         self.extra_frames = []
 
     def check(self,f):
-        valid_frames = [u'replaygain_album_gain',u'replaygain_album_peak',u'replaygain_track_gain',u'replaygain_track_peak',u'SOURCE']
-        status = True
-        for t in f.tag.user_text_frames:
-            if t.description not in valid_frames:
-                if t.text.lstrip() != '':
-                    status = False
-                    self.extra_frames.append(t.description)
-        return status
-
-    def message(self,f):
-        message = ', '.join(self.extra_frames)
-        self.extra_frames = []
-        return "Extra TXXX frames found: " + message
+        # TODO
+        return True
 
 class Validator:
     @staticmethod
@@ -236,10 +244,10 @@ class Validator:
 
     @staticmethod
     def rules():
-        return [ID3v2Version,NoID3v1Tag,Artist,Album,Title,TrackNumber,TotalTracks,
-            DiscNumber,TotalDiscs,Date,NoGenre,FrontCover,NoComment,NoLyrics,
+        return [ID3v2Version,NoID3v1Tag,Artist,Album,Title,TrackNumber,
+            DiscNumber,Date,NoGenre,FrontCover,NoComment,NoLyrics,
             ReplayGain,AlbumArtist,ExtraTextTag,CustomTextFrames]
 
     def load(self,filename):
-        return eyed3.load(filename)
+        return MP3(filename)
 

@@ -137,7 +137,7 @@ class NoLyrics:
 class ReplayGain:
     def check(self,f):
         tf = f.tag.user_text_frames
-        return tf.get(u"replaygain_album_gain") != None and tf.get(u"replaygain_album_peak") != None and tf.get(u"replaygain_track_gain") != None and tf.get(u"replaygain_track_peak") != None
+        return tf.get("replaygain_album_gain") != None and tf.get("replaygain_album_peak") != None and tf.get("replaygain_track_gain") != None and tf.get("replaygain_track_peak") != None
 
     def message(self,f):
         return "Replay gain tags should exist."
@@ -215,7 +215,7 @@ class CustomTextFrames:
         self.extra_frames = []
 
     def check(self,f):
-        valid_frames = [u'replaygain_album_gain',u'replaygain_album_peak',u'replaygain_track_gain',u'replaygain_track_peak',u'SOURCE']
+        valid_frames = ['replaygain_album_gain','replaygain_album_peak','replaygain_track_gain','replaygain_track_peak','SOURCE']
         status = True
         for t in f.tag.user_text_frames:
             if t.description not in valid_frames:

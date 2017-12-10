@@ -2,12 +2,12 @@
 
 import os
 import argparse
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import json
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import subprocess
 from PIL import Image
-from StringIO import StringIO
+from io import StringIO
 
 def search_term(artist, album):
     term = ""
@@ -20,21 +20,21 @@ def search_term(artist, album):
     return term
 
 def get_albumartexchange_url(artist, album):
-    params = urllib.urlencode({'sort': 4, 'q': search_term(artist, album)})
+    params = urllib.parse.urlencode({'sort': 4, 'q': search_term(artist, album)})
     return "http://www.albumartexchange.com/covers.php?%s" % params
 
 def get_json(artist, album, country):
-    params = urllib.urlencode({'entity': 'album', 'country': country, 'term': search_term(artist,album)})
-    f = urllib.urlopen("http://itunes.apple.com/search?%s" % params)
-    return json.load(f)[u'results']
+    params = urllib.parse.urlencode({'entity': 'album', 'country': country, 'term': search_term(artist,album)})
+    f = urllib.request.urlopen("http://itunes.apple.com/search?%s" % params)
+    return json.load(f)['results']
 
 class AlbumDescription:
     def __init__(self, itunes_dict):
-        self.artist = itunes_dict[u'artistName']
-        self.album = itunes_dict[u'collectionName']
-        self.date = itunes_dict[u'releaseDate']
-        self.tracks = itunes_dict[u'trackCount']
-        self.artwork = itunes_dict[u'artworkUrl100']
+        self.artist = itunes_dict['artistName']
+        self.album = itunes_dict['collectionName']
+        self.date = itunes_dict['releaseDate']
+        self.tracks = itunes_dict['trackCount']
+        self.artwork = itunes_dict['artworkUrl100']
 
     def __unicode__(self):
         return "Artist: %s\nAlbum: %s\nDate: %s\tTracks: %s\n" % (self.artist, self.album, self.date, self.tracks)
@@ -49,18 +49,18 @@ class AlbumDescription:
 
     def check_image_exists(self, url):
         try:
-            response = urllib2.urlopen(url)
+            response = urllib.request.urlopen(url)
             code = response.getcode();
             if code == 200 or code == 300 or code == 301 or code == 302:
                 content_type = response.info().gettype()
                 if content_type == "image/jpeg" or content_type == "image/tiff":
                     return True
-        except urllib2.HTTPError, e:
+        except urllib.error.HTTPError as e:
             pass
         return False
 
     def image_body(self):
-        return urllib2.urlopen(url)
+        return urllib.request.urlopen(url)
 
 def make_results_array(artist, album):
     all_results = []
@@ -81,26 +81,26 @@ parser.add_argument('--album', dest="album", type=str, help='album name')
 parser.add_argument('-w', action="store_true", dest="write", help='write out cover art')
 args = parser.parse_args()
 
-print
-print "ALBUM ART FINDER"
-print "================"
-print "Directory: " + unicode(args.path)
-print "Artist:    " + unicode(args.artist)
-print "Album:     " + unicode(args.album)
-print "Write Art: " + unicode(args.write)
-print
-print "Showing all results..."
-print
+print()
+print("ALBUM ART FINDER")
+print("================")
+print("Directory: " + str(args.path))
+print("Artist:    " + str(args.artist))
+print("Album:     " + str(args.album))
+print("Write Art: " + str(args.write))
+print()
+print("Showing all results...")
+print()
 
 def albumartexchange():
-    print "Opening album art exchange"
+    print("Opening album art exchange")
     subprocess.call(['open', get_albumartexchange_url(args.artist, args.album)])
 
 i = 0
 results = make_results_array(args.artist, args.album)
 for result in results:
-    print "|| " + str(i) + " ||"
-    print unicode(result)
+    print("|| " + str(i) + " ||")
+    print(str(result))
     i += 1
 
 valid_option = False
@@ -111,7 +111,7 @@ if len(results) == 0:
 
 option = -1
 while not valid_option:
-    option = input("Choose an option: ")
+    option = eval(input("Choose an option: "))
     if option < 0 or option >= len(results):
         valid_option = False
         continue
@@ -121,12 +121,12 @@ while not valid_option:
     path_to_write = os.path.join(args.path,'cover.jpg')
 
     if args.write:
-        print "Would write cover image to " + unicode(path_to_write)
-        print "Is this image ok? (Y or y to write to file)"
+        print("Would write cover image to " + str(path_to_write))
+        print("Is this image ok? (Y or y to write to file)")
     else:
-        print "Is this image ok?"
+        print("Is this image ok?")
 
-    okay = raw_input("[Y or y] to accept, [N or n] to skip and open album art exchange: ")
+    okay = input("[Y or y] to accept, [N or n] to skip and open album art exchange: ")
     if str(okay) == 'y' or str(okay) == "Y":
         valid_option = True
         if args.write:
@@ -134,22 +134,22 @@ while not valid_option:
             im_data = Image.open(StringIO(image))
             width, height = im_data.size
             if (width != height):
-                print "The width and height are not equal to each other.",
-                print str(width), "x", str(height), "Will not be writing the cover art."
+                print("The width and height are not equal to each other.", end=' ')
+                print(str(width), "x", str(height), "Will not be writing the cover art.")
                 albumartexchange()
             else:
                 f = open(path_to_write, 'wb')
                 f.write(results[option].image_body().read())
-                print "Cover art written."
+                print("Cover art written.")
     elif str(okay) == 'n' or str(okay) == "N":
         valid_option = True
-        print
+        print()
         albumartexchange()
     else:
         valid_option = False
         continue
 
-print
-print "Finished."
-print
+print()
+print("Finished.")
+print()
 

@@ -21,7 +21,7 @@ def crawl(path):
                 full_path = os.path.join(path,f)
                 music_file = eyed3.load(full_path)
                 from subprocess import call
-                print termcolor.colored("Finding cover art for " + music_file.tag.artist + " - " + music_file.tag.album, 'green')
+                print(termcolor.colored("Finding cover art for " + music_file.tag.artist + " - " + music_file.tag.album, 'green'))
                 call(["albumart", "--path", path, "--artist", music_file.tag.artist, "--album", music_file.tag.album, "-w"])
                 break
 

@@ -1,5 +1,5 @@
 import re
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import unicodedata
 import os
 
@@ -8,7 +8,7 @@ from mp3stuff.validators.flac import Validator as FlacValidator
 from mp3stuff.validators.mp4 import Validator as Mp4Validator
 
 class MusicCollection:
-    def __init__(self, folders=[os.getcwdu()]):
+    def __init__(self, folders=[os.getcwd()]):
         self.folders = folders
 
     @staticmethod
@@ -22,7 +22,7 @@ class MusicCollection:
 
     @classmethod
     def is_music(cls,filename):
-        if cls.extension(filename) in cls.validators().keys():
+        if cls.extension(filename) in list(cls.validators().keys()):
             return True
         else:
             return False
@@ -30,10 +30,10 @@ class MusicCollection:
     @staticmethod
     def normalized_path(path):
         if os.name == 'posix':
-            if type(path) == unicode:
+            if type(path) == str:
                 return path
             else:
-                return unicodedata.normalize('NFC',unicode(path,'utf-8'))
+                return unicodedata.normalize('NFC',str(path,'utf-8'))
         else:
             return path
 
@@ -80,7 +80,7 @@ class ItunesCollection(MusicCollection):
                 if match is None:
                     match = re.search(r'<string>file://(.+)</string>',line)
                 filename = match.group(1)
-                decoded_filename = urllib.unquote(filename.replace("&#38;","&"))
+                decoded_filename = urllib.parse.unquote(filename.replace("&#38;","&"))
                 if self.is_music(decoded_filename):
                     s.add(self.normalized_path(decoded_filename))
         return s

@@ -9,9 +9,9 @@ setup(
     scripts=["bin/id3validate","bin/diffmusic","bin/albumart","bin/albumartcrawl"],
     description="This does id3 stuff",
     install_requires=[
-        "eyeD3 >= 0.7.4",
+        "eyeD3 >= 0.8.2",
         "termcolor >= 1.1.0",
         "Pillow >= 2.0.0",
-        "mutagen >= 1.27"
+        "mutagen >= 1.39"
     ],
 )

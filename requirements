@@ -1,0 +1,7 @@
+eyeD3==0.8.10
+-e git+git@github.com:ultima51x/mp3stuff.git@53c1ea11f6797f7fa7c032c92ec18c5a0014bf82#egg=mp3stuff
+mutagen==1.42.0
+Pillow==6.0.0
+python-magic==0.4.15
+six==1.12.0
+termcolor==1.1.0

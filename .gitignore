@@ -2,3 +2,4 @@ Mp3Stuff.egg-info
 .DS_Store
 *.pyc
 env/
+.mypy_cache

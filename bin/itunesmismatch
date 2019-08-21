@@ -1,0 +1,79 @@
+#!/usr/bin/env python
+
+import os
+from functools import cmp_to_key
+from typing import Dict
+
+from libpytunes import Library
+
+HOME = os.path.expanduser("~")
+ITUNES = "Music/iTunes/iTunes Music Library.xml"
+
+
+def album_string(song):
+    return " - ".join([song.album_artist, song.album])
+
+
+def compare(a, b):
+    if a.disc_number == b.disc_number:
+        return a.track_number - b.track_number
+    else:
+        return a.disc_number - b.disc_number
+
+
+class Album:
+    def __init__(self):
+        self.songs = []
+
+    def is_complete(self) -> bool:
+        return False
+
+    def add(self, song):
+        self.songs.append(song)
+
+    def complete(self):
+        # Current logic: if disc numbers are the same, make sure there is no jump
+        # example: Track 3 to Track 5
+        self.songs.sort(key=cmp_to_key(compare))
+        cursor = None
+        for s in self.songs:
+            if cursor and s.disc_number == cursor.disc_number:
+                if s.track_number - cursor.track_number > 1:
+                    return False
+            cursor = s
+
+        return True
+
+    def album_details(self):
+        return [(s.album_artist, s.album, s.disc_number, s.track_number,
+                 s.name) for s in self.songs]
+
+
+class Collection:
+    albums: Dict[str, Album]
+
+    def __init__(self):
+        self.albums = dict()
+
+    def add(self, song):
+        key = album_string(song)
+        if key not in self.albums:
+            self.albums[key] = Album()
+
+        self.albums[key].add(song)
+
+
+library = Library(os.path.join(HOME, ITUNES))
+collection = Collection()
+
+for id, song in library.songs.items():
+    if song.album_artist is None:  # TODO: find a better way to skip
+        continue
+
+    collection.add(song)
+
+for k, a in collection.albums.items():
+    if not a.complete():
+        print(k)
+        print(a.album_details())
+        print()

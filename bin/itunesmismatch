@@ -6,8 +6,13 @@ from typing import Dict
 
 from libpytunes import Library
 
-HOME = os.path.expanduser("~")
-ITUNES = "Music/iTunes/iTunes Music Library.xml"
+
+import argparse
+
+parser = argparse.ArgumentParser(description='Determine mismatched albums from an Apple Music/Itunes Library. Export it from Apple Music.')
+parser.add_argument('xmlfile', type=argparse.FileType('r', encoding='UTF-8'))
+args = parser.parse_args()
+xmlfile = args.xmlfile
 
 
 def album_string(song):
@@ -62,8 +67,7 @@ class Collection:
 
         self.albums[key].add(song)
 
-
-library = Library(os.path.join(HOME, ITUNES))
+library = Library(xmlfile.name)
 collection = Collection()
 
 for id, song in library.songs.items():

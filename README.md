@@ -38,3 +38,14 @@ git commit
 Try adding an alias to scripts that are in ./env/bin.
 
 Example: `./env/bin/id3validate`
+
+## Installing it for my Use
+
+```
+pipx install .
+```
+does an install
+
+NOTE: make sure the *.egg-info stuff is not present in the folder.
+
+One would have to re-install it I assume to update it.

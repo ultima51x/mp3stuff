@@ -7,8 +7,8 @@ A lot of random scripts involving MP3s, FLAC, ALAC.  It's a mismash of stuff.
 It's best to make a virtual environment.  This used Python 3.7.
 
 ```sh
-python -m venv env
-source env/bin/activate
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -42,7 +42,7 @@ Example: `./env/bin/id3validate`
 ## Installing it for my Use
 
 ```
-pipx install .
+pip install -e .
 ```
 does an install
 

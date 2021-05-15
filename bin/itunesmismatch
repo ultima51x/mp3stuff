@@ -1,25 +1,22 @@
 #!/usr/bin/env python
 
-import os
 from functools import cmp_to_key
-from typing import Dict
+from typing import Dict, Tuple
 
 from libpytunes import Library
 
 
 import argparse
 
-parser = argparse.ArgumentParser(description='Determine mismatched albums from an Apple Music/Itunes Library. Export it from Apple Music.')
-parser.add_argument('xmlfile', type=argparse.FileType('r', encoding='UTF-8'))
+parser = argparse.ArgumentParser(
+    description="Determine mismatched albums from an Apple Music/Itunes Library. Export it from Apple Music."
+)
+parser.add_argument("xmlfile", type=argparse.FileType("r", encoding="UTF-8"))
 args = parser.parse_args()
 xmlfile = args.xmlfile
 
 
-def album_string(song):
-    return " - ".join([song.album_artist, song.album])
-
-
-def compare(a, b):
+def compare_tracks(a, b):
     if a.disc_number == b.disc_number:
         return a.track_number - b.track_number
     else:
@@ -27,7 +24,9 @@ def compare(a, b):
 
 
 class Album:
-    def __init__(self):
+    def __init__(self, album: str, album_artist: str):
+        self.album = album
+        self.album_artist = album_artist
         self.songs = []
 
     def is_complete(self) -> bool:
@@ -37,35 +36,51 @@ class Album:
         self.songs.append(song)
 
     def complete(self):
-        # Current logic: if disc numbers are the same, make sure there is no jump
+        # Current logic:
+        #
+        # If disc numbers are the same, make sure there is no jump
         # example: Track 3 to Track 5
-        self.songs.sort(key=cmp_to_key(compare))
+        self.songs.sort(key=cmp_to_key(compare_tracks))
         cursor = None
         for s in self.songs:
             if cursor and s.disc_number == cursor.disc_number:
                 if s.track_number - cursor.track_number > 1:
                     return False
+
             cursor = s
 
         return True
 
-    def album_details(self):
-        return [(s.album_artist, s.album, s.disc_number, s.track_number,
-                 s.name) for s in self.songs]
+    def song_description(self, song):
+        return "\t".join(
+            [
+                f"{song.disc_number}/{song.disc_count}",
+                f"{song.track_number}/{song.track_count}",
+                song.name,
+            ]
+        )
+
+    def __str__(self):
+        lines = [f"{self.album_artist} - {self.album}"]
+        for s in self.songs:
+            lines.append("\t" + self.song_description(s))
+        return "\n".join(lines)
 
 
 class Collection:
-    albums: Dict[str, Album]
+    albums: Dict[Tuple[str, str], Album]
 
     def __init__(self):
         self.albums = dict()
 
     def add(self, song):
-        key = album_string(song)
+        album_artist = song.album_artist
+        album = song.album
+        key = (album_artist, album)
         if key not in self.albums:
-            self.albums[key] = Album()
-
+            self.albums[key] = Album(album_artist=album_artist, album=album)
         self.albums[key].add(song)
+
 
 library = Library(xmlfile.name)
 collection = Collection()
@@ -76,8 +91,7 @@ for id, song in library.songs.items():
 
     collection.add(song)
 
-for k, a in collection.albums.items():
-    if not a.complete():
-        print(k)
-        print(a.album_details())
-        print()
+for k, album in collection.albums.items():
+    if not album.complete():
+        print(album)
+        print("\n")

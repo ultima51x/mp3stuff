@@ -16,39 +16,55 @@ args = parser.parse_args()
 xmlfile = args.xmlfile
 
 
-def compare_tracks(a, b):
-    if a.disc_number == b.disc_number:
-        return a.track_number - b.track_number
-    else:
-        return a.disc_number - b.disc_number
-
-
 class Album:
     def __init__(self, album: str, album_artist: str):
         self.album = album
         self.album_artist = album_artist
-        self.songs = []
-
-    def is_complete(self) -> bool:
-        return False
+        self.discs = None  # this will be a two dimensional array
+        self.errors = set()
 
     def add(self, song):
-        self.songs.append(song)
+        # Forget it if there's no track count
+        if song.track_count is None:
+            self.errors.add((song, "no track count"))
+            return
 
-    def complete(self):
-        # Current logic:
-        #
-        # If disc numbers are the same, make sure there is no jump
-        # example: Track 3 to Track 5
-        self.songs.sort(key=cmp_to_key(compare_tracks))
-        cursor = None
-        for s in self.songs:
-            if cursor and s.disc_number == cursor.disc_number:
-                if s.track_number - cursor.track_number > 1:
+        disc_idx = song.disc_number - 1
+        track_idx = song.track_number - 1
+
+        # Adding the disc entry if necessary
+        if not self.discs:  # populate disc count
+            self.discs = [None] * song.disc_count
+        elif len(self.discs) != song.disc_count:  # disc count mismatch
+            self.errors.add((song, "disc count conflict"))
+            while len(self.discs) < song.disc_count:
+                self.discs.append(None)  # expand the list
+
+        # Adding the song subarray if necessary
+        cur_disclist = self.discs[disc_idx]
+        if not cur_disclist:
+            self.discs[disc_idx] = [None] * song.track_count
+        elif len(cur_disclist) != song.track_count:
+            self.errors.add((song, "track count conflict"))
+            while len(self.discs[disc_idx]) < song.track_count:
+                self.discs[disc_idx].append(None)  # expand the list
+
+        if not self.discs[disc_idx][track_idx]:
+            self.discs[disc_idx][track_idx] = song
+        else:
+            self.errors.add((song, "duplicate"))
+
+    def looks_good(self):
+        return self.check_for_completeness() and len(self.errors) == 0
+
+    def check_for_completeness(self):
+        # Basically if there is a None in the list, it's not complete
+        for tracklist in self.discs:
+            if tracklist is None:
+                return False
+            for song in tracklist:
+                if not song:
                     return False
-
-            cursor = s
-
         return True
 
     def song_description(self, song):
@@ -61,9 +77,27 @@ class Album:
         )
 
     def __str__(self):
+        # lines = [f"{self.album_artist} - {self.album}"]
+        # for s in self.songs:
+        #     lines.append("\t" + self.song_description(s))
+
         lines = [f"{self.album_artist} - {self.album}"]
-        for s in self.songs:
-            lines.append("\t" + self.song_description(s))
+
+        lines.append("\tTrack List")
+        for tracklist in self.discs:
+            if tracklist is None:
+                lines.append("\t\t Empty Disc")
+                continue
+            for song in tracklist:
+                if not song:
+                    lines.append("\t\t" + "EMPTY")
+                else:
+                    lines.append("\t\t" + self.song_description(song))
+
+        lines.append("\tErrors")
+        for (song, message) in self.errors:
+            lines.append("\t\t" + self.song_description(song) + "\t" + message)
+
         return "\n".join(lines)
 
 
@@ -91,7 +125,8 @@ for id, song in library.songs.items():
 
     collection.add(song)
 
-for k, album in collection.albums.items():
-    if not album.complete():
+for key in sorted(collection.albums.keys()):
+    album = collection.albums[key]
+    if not album.looks_good():
         print(album)
         print("\n")

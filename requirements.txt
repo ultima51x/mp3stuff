@@ -2,7 +2,7 @@ eyeD3==0.8.12
 -e git+https://github.com/liamks/libpytunes.git@c0a4b1b22256a318663c52e5fbdf8569383eb4ba#egg=libpytunes
 -e git+git@github.com:ultima51x/mp3stuff.git@5dd376b708690b6555986f2755912171259bd9a1#egg=mp3stuff
 mutagen==1.42.0
-Pillow==6.0.0
+Pillow==9.0.0
 python-magic==0.4.15
 six==1.11.0
 termcolor==1.1.0
